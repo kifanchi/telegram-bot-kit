@@ -48,6 +48,8 @@ import doc_extract  # local module: file text extractors + chunker
 
 # ----------------------------- Config -----------------------------
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
+# Optional Telegram Bot API relay (same origin used by CAPRI).
+TELEGRAM_API_ROOT = os.environ.get("TELEGRAM_API_ROOT", "").rstrip("/")
 # Any OpenAI-compatible endpoint: Ollama's /v1, OpenAI, Groq, OpenRouter, etc.
 LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "http://127.0.0.1:11434/v1").rstrip("/")
 LLM_API_KEY = os.environ.get("LLM_API_KEY", "ollama")
@@ -1606,9 +1608,17 @@ async def cmd_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     db_init()
+    builder = Application.builder().token(TELEGRAM_TOKEN)
+    if TELEGRAM_API_ROOT:
+        # python-telegram-bot appends token+method / file path.
+        builder = (
+            builder
+            .base_url(f"{TELEGRAM_API_ROOT}/bot")
+            .base_file_url(f"{TELEGRAM_API_ROOT}/file/bot")
+        )
+        log.info("Using custom Telegram API relay for messages and file downloads")
     app = (
-        Application.builder()
-        .token(TELEGRAM_TOKEN)
+        builder
         .concurrent_updates(True)
         .post_init(_on_startup)
         .build()

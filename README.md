@@ -117,3 +117,14 @@ the paths/user, and install it if you want the bot to run as a service.
 ## License
 
 Apache License 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+
+## Telegram Cloudflare relay (CAPRI VPS)
+
+This fork supports the optional `TELEGRAM_API_ROOT` environment variable. If your VPS cannot reach `api.telegram.org`, set it in `.env` to the Cloudflare Worker origin, for example:
+
+```env
+TELEGRAM_API_ROOT=https://kapricorn-telegram-relay.kifangames.workers.dev
+```
+
+The bot then uses `{origin}/bot{TELEGRAM_TOKEN}/{method}` for API calls, and `{origin}/file/bot{TELEGRAM_TOKEN}/{file_path}` for downloading photos and documents. **Important:** the Cloudflare relay must support the *new bot's token*, and must proxy both Bot API method calls and Telegram file downloads. A Worker bound to CAPRI's token, or a Worker that only proxies API methods, is insufficient. Never commit Telegram or Polza tokens; put them in VPS-only `.env`. Test `/start`, photo upload and PDF upload separately after deployment.
